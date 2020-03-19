@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
+<title>RequestHistory patch 20200318</title>
+<style type="text/css">
+    
+    div {
+        font-family: "Microsoft JhengHei", "Arial";
+        font-size: 20px;
+		font-weight: 500;
+		color: black;
+    }
+	
+
+</style>
+<html>
+
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script type="text/javascript">
+
+	var searchID = "dumbting"
+		
+        $(document).ready(function() {
+			var url = location.href
+			if(url.indexOf('?')!=-1){
+			searchID = url.split('?')[1]
+			}
+			
+		var alllist = [];
+
+            //playHistory
+            $.getJSON("https://api.streamersonglist.com/v1/streamers/dumbting/playHistory?size=500&current=0&type=playedAt&order=desc&period=all", function(result) {
+			count = 0;
+                $.each(result.items, function(i, field) {
+				
+				if (field.requests[0].name == searchID) {
+					alllist.push(field.song.title + " - " + new Date(field.playedAt).toLocaleDateString('zh-TW', {timeZone: 'Asia/Taipei'}) + " " + new Date(field.playedAt).toTimeString().split("GMT+0800 (台北標準時間)")[0])
+					}
+                });
+
+					$(playHistory).append("查詢點播: " + searchID + "</br></br>" + alllist.join("@$").replace(/\@\$/g, "</br>"))
+
+            });
+        });
+    </script>
+</head>
+
+<body>
+
+    <div id="playHistory"></div>
+	
+</body>
+
+</html>

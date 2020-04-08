@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
+<title>patch 20200408</title>
+<style type="text/css">
+    div {
+        font-family: "Microsoft JhengHei", "Arial";
+        font-size: 20px;
+        font-weight: 500;
+        color: black;
+    }
+</style>
+<html>
+
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        var searchID = "dumbting"
+
+        $(document).ready(function() {
+            var url = location.href
+            if (url.indexOf('?') != -1) {
+                searchID = url.split('?')[1]
+            }
+
+            var alllist = [];
+
+            $.getJSON("https://api.streamersonglist.com/v1/streamers/2843/songs?size=2000", function(result) {
+                count = 0;
+
+                function sorting(json_object, key_to_sort_by) {
+                    function sortByKey(a, b) {
+                        var x = a[key_to_sort_by];
+                        var y = b[key_to_sort_by];
+                        return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+                    }
+                    json_object.sort(sortByKey);
+                }
+                sorting(result.items, "createdAt");
+
+                $.each(result.items, function(i, field) {
+
+                    alllist.push(field.title + " - " + field.artist + " - " +new Date(field.createdAt).toLocaleDateString('zh-TW', {
+                            timeZone: 'Asia/Taipei'
+                        }) + " " + new Date(field.createdAt).toTimeString().split("GMT+0800 (台北標準時間)")[0])
+                });
+
+                $(DIV1).append("Songlist by " + searchID + "</br></br>" + alllist.join("@$").replace(/\@\$/g, "</br>"));
+
+            });
+        });
+    </script>
+</head>
+
+<body>
+
+    <div id="DIV1"></div>
+
+</body>
+
+</html>

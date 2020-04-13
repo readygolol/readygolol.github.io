@@ -29,7 +29,7 @@
 
             var alllist = [];
 
-            $.getJSON("https://api.streamersonglist.com/v1/streamers/"+ searchID +"/songs?size=5", function(result) {
+            $.getJSON("https://api.streamersonglist.com/v1/streamers/"+ searchID +"/songs?size=1", function(result) {
                 count = 0;
 
                 function sorting(json_object, key_to_sort_by) {

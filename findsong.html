@@ -5,97 +5,60 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 
-<title>StreamerSonglist patch 20200328</title>
+<title>patch 20200408</title>
 <style type="text/css">
-    html {
-        overflow: hidden;
-    }
-    
     div {
         font-family: "Microsoft JhengHei", "Arial";
-        line-height: 42px;
-        font-size: 32px;
+        font-size: 20px;
         font-weight: 500;
-        color: white;
-    }
-    
-    div img {
-        width: 96px;
-        position: absolute;
-        z-index: 1;
-        margin-top: -4px;
+        color: black;
     }
 </style>
 <html>
 
 <head>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
     <script type="text/javascript">
-        var count = 0;
+        var searchID = "dumbting"
+
         $(document).ready(function() {
-            var socket = io('wss://api.streamersonglist.com', {
-                path: '/socket.io'
-            });
-            socket.emit('join-room', "2843");
-            socket.on('queue-update', function(data) {
-                listing(0)
-            });
-            listing(0)
+            var url = location.href
+            if (url.indexOf('?') != -1) {
+                searchID = url.split('?')[1]
+            }
 
-            function listing(evt) {
+            var alllist = [];
 
-                var alllist = [];
+            $.getJSON("https://api.streamersonglist.com/v1/streamers/"+ searchID +"/songs?size=5", function(result) {
+                count = 0;
 
-                //playHistory
-                $.getJSON("https://api.streamersonglist.com/v1/streamers/dumbting/playHistory?size=5&current=0&type=createdAt&order=asc&period=stream", function(result) {
-                    count = 0;
-                    $.each(result.items, function(i, field) {
-                        alllist.push("　　　" + (result.items.indexOf(field) + 1) + ". " + field.song.title)
-                        count = result.items.indexOf(field) + 1;
-                    });
+                function sorting(json_object, key_to_sort_by) {
+                    function sortByKey(a, b) {
+                        var x = a[key_to_sort_by];
+                        var y = b[key_to_sort_by];
+                        return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+                    }
+                    json_object.sort(sortByKey);
+                }
+                sorting(result.items, "createdAt");
 
-                    //queue
-                    $.getJSON("https://api.streamersonglist.com/v1/streamers/dumbting/queue", function(result) {
-                        $.each(result.list, function(i, field) {
-                            if (result.list.indexOf(field) == 0) {
-                                alllist.push('<img src="https://i.imgur.com/eD77SnU.png" alt="➤" >' + "　　　" + (result.list.indexOf(field) + 1 + count) + ". " + field.song.title)
-                            }
-                            if (result.list.indexOf(field) > 0) {
-                                alllist.push("　　　" + (result.list.indexOf(field) + 1 + count) + ". " + field.song.title)
-                            }
-                        });
-                        $(playHistory).html("");
-                        if (count < 15) {
-                            $(playHistory).css({
-                                "position": "absolute",
-                                "top": "0px"
-                            });
-                        }
-                        if (count > 15) {
-                            $(playHistory).css({
-                                "position": "absolute",
-                                "top": (((count - 15) * -42) + "px")
-                            });
-                        }
-                        $(playHistory).append(alllist.join("@$").replace(/\@\$/g, "</br>"))
-						
-                            //double poll
-                        if (evt == 0) {
-                            setTimeout(() => {
-                                listing(1)
-                            }, 1000);
-                        }
-                    });
+                $.each(result.items, function(i, field) {
+
+                    alllist.push(field.title + " - " + field.artist + " - " +new Date(field.createdAt).toLocaleDateString('zh-TW', {
+                            timeZone: 'Asia/Taipei'
+                        }) + " " + new Date(field.createdAt).toTimeString().split("GMT+0800 (台北標準時間)")[0])
                 });
-            };
+
+                $(DIV1).append("Songlist by " + searchID + "</br></br>" + alllist.join("@$").replace(/\@\$/g, "</br>"));
+
+            });
         });
     </script>
 </head>
 
 <body>
 
-    <div id="playHistory"></div>
+    <div id="DIV1"></div>
 
 </body>
 

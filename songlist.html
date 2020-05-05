@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
+<title>StreamerSonglist</title>
+<style type="text/css">
+    html {
+        overflow: hidden;
+    }
+    
+    div {
+        font-family: "Microsoft JhengHei", "Arial";
+        line-height: 42px;
+        font-size: 32px;
+        font-weight: 500;
+        color: white;
+    }
+    
+    div img {
+        width: 96px;
+        position: absolute;
+        z-index: 1;
+        margin-top: -4px;
+    }
+</style>
+<html>
+
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+    <script type="text/javascript">
+        var searchID
+
+        $(document).ready(function() {
+            var url = location.href
+            if (url.indexOf('?id=') != -1) {
+                searchID = url.split('?id=')[1]
+            }
+            var count = 0;
+            $(document).ready(function() {
+                var socket = io('wss://api.streamersonglist.com', {
+                    path: '/socket.io'
+                });
+                socket.emit('join-room', "2843");
+                socket.on('queue-update', function(data) {
+                    listing(0)
+                });
+                listing(0)
+
+                function listing(evt) {
+
+                    var alllist = [];
+
+                    //playHistory
+                    $.getJSON("https://api.streamersonglist.com/v1/streamers/" + searchID + "/playHistory?size=100&current=0&type=createdAt&order=asc&period=stream", function(result) {
+                        count = 0;
+                        $.each(result.items, function(i, field) {
+                            alllist.push("　 " + (result.items.indexOf(field) + 1) + ". " + field.song.title)
+                            count = result.items.indexOf(field) + 1;
+                        });
+
+                        //queue
+                        $.getJSON("https://api.streamersonglist.com/v1/streamers/" + searchID + "/queue", function(result) {
+                            $.each(result.list, function(i, field) {
+                                if (result.list.indexOf(field) == 0) {
+                                    alllist.push("➤ " + (result.list.indexOf(field) + 1 + count) + ". " + field.song.title)
+                                }
+                                if (result.list.indexOf(field) > 0) {
+                                    alllist.push("　 " + (result.list.indexOf(field) + 1 + count) + ". " + field.song.title)
+                                }
+                            });
+                            $(playHistory).html("");
+                            if (count < 15) {
+                                $(playHistory).css({
+                                    "position": "absolute",
+                                    "top": "0px"
+                                });
+                            }
+                            if (count > 15) {
+                                $(playHistory).css({
+                                    "position": "absolute",
+                                    "top": (((count - 15) * -42) + "px")
+                                });
+                            }
+                            $(playHistory).append(alllist.join("@$").replace(/\@\$/g, "</br>"))
+
+                            //double poll
+                            if (evt == 0) {
+                                setTimeout(() => {
+                                    listing(1)
+                                }, 1000);
+                            }
+                        });
+                    });
+                };
+            });
+        });
+    </script>
+</head>
+
+<body>
+
+    <div id="playHistory"></div>
+
+</body>
+
+</html>

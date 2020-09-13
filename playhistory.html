@@ -5,7 +5,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 
-<title>playHistory patch 20200319</title>
+<title>playHistory patch 20200914</title>
 <style type="text/css">
     
     div {
@@ -36,8 +36,10 @@
             //playHistory
             $.getJSON("https://api.streamersonglist.com/v1/streamers/"+ channel +"/playHistory?size=500&current=0&type=playedAt&order=desc&period=all", function(result) {
                 $.each(result.items, function(i, field) {
+				if (field.requests[0].name == channel) {
 					alllist.push(field.song.title + " - " + field.requests[0].name + " - " + new Date(field.playedAt).toLocaleDateString('zh-TW', {timeZone: 'Asia/Taipei'}) + " " + new Date(field.playedAt).toTimeString().split("GMT+0800 (台北標準時間)")[0])
-                });
+					}
+				});
 
 					$(playHistory).append( channel +" 台點播表</br></br>" + alllist.join("@$").replace(/\@\$/g, "</br>"))
 

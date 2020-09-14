@@ -5,7 +5,7 @@
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
 
-<title>playHistory patch 20200914</title>
+<title>playHistory patch 20200319</title>
 <style type="text/css">
     
     div {
@@ -20,7 +20,7 @@
 <html>
 
 <head>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script type="text/javascript">
 
 	var channel = "dumbting"
@@ -32,16 +32,27 @@
 			}
 			
 		var alllist = [];
+		var newlist = ""
 
             //playHistory
             $.getJSON("https://api.streamersonglist.com/v1/streamers/"+ channel +"/playHistory?size=500&current=0&type=playedAt&order=desc&period=all", function(result) {
                 $.each(result.items, function(i, field) {
-				if (field.requests[0].name == channel) {
-					alllist.push(field.song.title + " - " + field.requests[0].name + " - " + new Date(field.playedAt).toLocaleDateString('zh-TW', {timeZone: 'Asia/Taipei'}) + " " + new Date(field.playedAt).toTimeString().split("GMT+0800 (台北標準時間)")[0])
-					}
-				});
+				alllist.push(field)
+                });
 
-					$(playHistory).append( channel +" 台點播表</br></br>" + alllist.join("@$").replace(/\@\$/g, "</br>"))
+				for (i = 0; i < alllist.length; i++){
+				var songname
+				
+				if (alllist[i].nonlistSong == null){
+					songname = alllist[i].song.title
+				}
+				else{songname = alllist[i].nonlistSong
+				}
+
+					newlist += songname + " - " + alllist[i].requests[0].name + " - " + new Date(alllist[i].playedAt).toLocaleDateString('zh-TW', {timeZone: 'Asia/Taipei'}) + " " + new Date(alllist[i].playedAt).toTimeString().split("GMT+0800 (台北標準時間)")[0] + "</br>"
+					}
+					//console.log(newlist)
+					$(playHistory).append( channel +" 台點播表</br></br>" + newlist)
 
             });
         });

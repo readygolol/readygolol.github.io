@@ -38,65 +38,74 @@
             var url = location.href
             if (url.indexOf('?id=') != -1) {
                 searchID = url.split('?id=')[1]
-            }
+				listing(0)
+            }else{
+			$(playHistory).append("No user id")
+			}
+			
             var count = 0;
-            $(document).ready(function() {
-                var socket = io('wss://api.streamersonglist.com', {
-                    path: '/socket.io'
-                });
-                socket.emit('join-room', "2843");
-                socket.on('queue-update', function(data) {
-                    listing(0)
-                });
-                listing(0)
 
-                function listing(evt) {
+            function listing(evt) {
 
-                    var alllist = [];
+                var alllist = [];
 
-                    //playHistory
-                    $.getJSON("https://api.streamersonglist.com/v1/streamers/" + searchID + "/playHistory?size=100&current=0&type=createdAt&order=asc&period=stream", function(result) {
-                        count = 0;
-                        $.each(result.items, function(i, field) {
-                            alllist.push("　 " + (result.items.indexOf(field) + 1) + ". " + field.song.title)
-                            count = result.items.indexOf(field) + 1;
-                        });
-
-                        //queue
-                        $.getJSON("https://api.streamersonglist.com/v1/streamers/" + searchID + "/queue", function(result) {
-                            $.each(result.list, function(i, field) {
-                                if (result.list.indexOf(field) == 0) {
-                                    alllist.push("➤ " + (result.list.indexOf(field) + 1 + count) + ". " + field.song.title)
-                                }
-                                if (result.list.indexOf(field) > 0) {
-                                    alllist.push("　 " + (result.list.indexOf(field) + 1 + count) + ". " + field.song.title)
-                                }
-                            });
-                            $(playHistory).html("");
-                            if (count < 15) {
-                                $(playHistory).css({
-                                    "position": "absolute",
-                                    "top": "0px"
-                                });
-                            }
-                            if (count > 15) {
-                                $(playHistory).css({
-                                    "position": "absolute",
-                                    "top": (((count - 15) * -42) + "px")
-                                });
-                            }
-                            $(playHistory).append(alllist.join("@$").replace(/\@\$/g, "</br>"))
-
-                            //double poll
-                            if (evt == 0) {
-                                setTimeout(() => {
-                                    listing(1)
-                                }, 1000);
-                            }
-                        });
+                //playHistory
+                $.getJSON("https://api.streamersonglist.com/v1/streamers/" + searchID + "/playHistory?size=100&current=0&type=createdAt&order=asc&period=stream", function(result) {
+                    count = 0;
+                    $.each(result.items, function(i, field) {
+						var songname
+						if (field.nonlistSong == null){
+							songname = field.song.title
+						}
+						else{
+							songname = field.nonlistSong
+						}
+                        alllist.push("　　" + (result.items.indexOf(field) + 1) + ". " + songname)
+                        count = result.items.indexOf(field) + 1;
                     });
-                };
-            });
+
+                    //queue
+                    $.getJSON("https://api.streamersonglist.com/v1/streamers/" + searchID + "/queue", function(result) {
+                        $.each(result.list, function(i, field) {
+							var songname
+							if (field.nonlistSong == null){
+								songname = field.song.title
+							}
+							else{
+								songname = field.nonlistSong
+							}
+                            if (result.list.indexOf(field) == 0) {
+								alllist.push("➤　" + (result.list.indexOf(field) + 1 + count) + ". " + songname)
+                            }
+                            if (result.list.indexOf(field) > 0) {
+                                alllist.push("　　" + (result.list.indexOf(field) + 1 + count) + ". " + songname)
+                            }
+                        });
+                        $(playHistory).html("");
+						var lines = 10
+                        if (count < lines) {
+                            $(playHistory).css({
+                                "position": "absolute",
+                                "top": "0px"
+                            });
+                        }
+                        if (count > lines) {
+                            $(playHistory).css({
+                                "position": "absolute",
+                                "top": (((count - lines) * -42) + "px")
+                            });
+                        }
+                        $(playHistory).append(alllist.join("@$").replace(/\@\$/g, "</br>"))
+						
+                            //setTimeout
+                        if (evt == 0) {
+                            setTimeout(() => {
+                                listing(0)
+                            }, 3000);
+                        }
+                    });
+                });
+            };
         });
     </script>
 </head>

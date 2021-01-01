@@ -38,19 +38,31 @@
             var url = location.href
             if (url.indexOf('?id=') != -1) {
                 searchID = url.split('?id=')[1]
-				listing(0)
+				$.getJSON("https://api.streamersonglist.com/v1/streamers/" + searchID , function(result){
+				joinSocket(result.id)
+				console.log(result.id)
+				})
             }else{
 			$(playHistory).append("No user id")
 			}
 			
             var count = 0;
+			function joinSocket(id) {
+                var socket = io('wss://api.streamersonglist.com', {
+                    path: '/socket.io'
+                });
+                socket.emit('join-room', id);
+                socket.on('queue-update', function(data) {
+                    listing(0)
+                });
+                listing(0)
 
             function listing(evt) {
 
                 var alllist = [];
 
                 //playHistory
-                $.getJSON("https://api.streamersonglist.com/v1/streamers/" + searchID + "/playHistory?size=100&current=0&type=createdAt&order=asc&period=stream", function(result) {
+                $.getJSON("https://api.streamersonglist.com/v1/streamers/" + searchID + "/playHistory?size=100&current=0&type=playedAt&order=asc&period=stream", function(result) {
                     count = 0;
                     $.each(result.items, function(i, field) {
 						var songname
@@ -97,15 +109,16 @@
                         }
                         $(playHistory).append(alllist.join("@$").replace(/\@\$/g, "</br>"))
 						
-                            //setTimeout
+                            //double poll
                         if (evt == 0) {
                             setTimeout(() => {
-                                listing(0)
-                            }, 3000);
+                                listing(1)
+                            }, 1000);
                         }
                     });
                 });
             };
+		  };
         });
     </script>
 </head>
